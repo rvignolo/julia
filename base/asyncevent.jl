@@ -249,7 +249,13 @@ julia> begin
 function Timer(cb::Function, timeout::Real; interval::Real=0.0)
     timer = Timer(timeout, interval=interval)
     @async while _trywait(timer)
-            cb(timer)
+            try
+                cb(timer)
+            catch err
+                write(stderr, "Error in Timer:\n")
+                showerror(stderr, err, catch_backtrace())
+                return
+            end
             isopen(timer) || return
         end
     return timer
